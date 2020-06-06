@@ -1,0 +1,21 @@
+sudo: reuqired
+services:
+    - docker
+before_install:
+    - docker build -t klisowski/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true klisowski/react-test npm test -- --coverage
+
+after_sucess:
+    - docker build -t klisowski/multi-client ./client
+    - docker build -t klisowski/multi-nginx ./nginx
+    - docker build -t klisowski/multi-server ./server
+    - docker build -t klisowski/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push klisowski/multi-client
+    - docker push klisowski/multi-nginx
+    - docker push klisowski/multi-server
+    - docker push klisowski/multi-worker
+
